@@ -1,0 +1,43 @@
+---
+- name: Instalar versiones vulnerables de ProFTPD y Nginx en Ubuntu Server 22.04
+  hosts: vulnerables
+  become: true
+  tasks:
+
+    # Instalar ProFTPD
+    - name: Instalar ProFTPD
+      apt:
+        name: proftpd
+        state: present
+        allow_unauthenticated: yes
+
+    - name: Configurar ProFTPD para permitir conexiones anónimas
+      lineinfile:
+        path: /etc/proftpd/proftpd.conf
+        regexp: '^#?RequireValidShell'
+        line: 'RequireValidShell off'
+
+    - name: Reiniciar el servicio de ProFTPD
+      systemd:
+        name: proftpd
+        state: restarted
+        enabled: yes
+
+    # Instalar Nginx
+    - name: Instalar Nginx
+      apt:
+        name: nginx
+        state: present
+        allow_unauthenticated: yes
+
+    - name: Deshabilitar HTTP/2 en Nginx
+      lineinfile:
+        path: /etc/nginx/nginx.conf
+        regexp: '^#?http2'
+        line: '#http2'
+
+    - name: Reiniciar el servicio de Nginx
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
